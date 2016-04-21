@@ -1,6 +1,9 @@
 package com.luyh.my2048;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
 import android.media.Image;
 import android.nfc.Tag;
@@ -10,9 +13,18 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.FrameLayout;
+import android.widget.LinearLayout;
+import android.widget.Toast;
 
+import com.kyview.AdViewStream;
+import com.kyview.AdViewTargeting;
+import com.kyview.interfaces.AdInstlInterface;
+import com.kyview.interfaces.AdViewInterface;
+import com.kyview.screen.interstitial.AdInstlManager;
 import com.phkg.b.BManager;
 import com.phkg.b.MyBMDevListner;
 
@@ -21,11 +33,11 @@ import net.youmi.android.banner.AdSize;
 import net.youmi.android.banner.AdView;
 import net.youmi.android.banner.AdViewListener;
 
-public class MainActivity extends Activity {
+public class MainActivity extends Activity implements AdViewInterface, AdInstlInterface {
 
     protected final static String TAG = "MainActivity";
 
-    MainView view;
+    private MainView view;
     public static final String WIDTH = "width";
     public static final String HEIGHT = "height";
     public static final String SCORE = "score";
@@ -36,10 +48,27 @@ public class MainActivity extends Activity {
     public static final String GAME_STATE = "game state";
     public static final String UNDO_GAME_STATE = "undo game state";
 
+    private AdInstlManager adInstlManager;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+//        AdViewTargeting.setUpdateMode(AdViewTargeting.UpdateMode.EVERYTIME); // 功能为每次都从服务器获取最新的设置，方便您的调试，当调 试结束后，一定要去掉这句话，因为系统已经为您优化成最佳时间，同时不影响应用本身的性能。
+        AdViewTargeting.setAdSize(AdViewTargeting.AdSize.BANNER_AUTO_FILL);
+        // 设置横幅可关闭
+        AdViewTargeting.setBannerSwitcherMode(AdViewTargeting.BannerSwitcher.CANCLOSED);
+        // 设置插屏可关闭
+        AdViewTargeting.setInstlSwitcherMode(AdViewTargeting.InstlSwitcher.CANCLOSED);
+        // 设置插屏模式
+        AdViewTargeting
+                .setInstlDisplayMode(AdViewTargeting.InstlDisplayMode.DIALOG_MODE);
+
+        adInstlManager = new AdInstlManager(this,
+                "SDK20161021100413hvp059mhx8l3i2p");
+        adInstlManager.setAdInstlInterface(this);
+
         view = new MainView(getBaseContext());
 
         SharedPreferences settings = PreferenceManager.getDefaultSharedPreferences(this);
@@ -51,17 +80,12 @@ public class MainActivity extends Activity {
             }
         }
         setContentView(view);
-
-        // 加载酷果广告
-        loadKGAds();
-
-        // 加载有米广告
-//        loadYMAds();
-
+        btnCode2();
     }
+
     @Override
     public boolean onKeyDown(int keyCode, KeyEvent event) {
-        if ( keyCode == KeyEvent.KEYCODE_MENU) {
+        if (keyCode == KeyEvent.KEYCODE_MENU) {
             //Do nothing
             return true;
         } else if (keyCode == KeyEvent.KEYCODE_DPAD_DOWN) {
@@ -78,6 +102,31 @@ public class MainActivity extends Activity {
             return true;
         }
         return super.onKeyDown(keyCode, event);
+    }
+
+    private AdViewStream adStream;
+    private LinearLayout layout, layoutXml, layoutCustom;
+
+    public void btnCode2() {
+        if (adStream != null)
+            adStream.setClosed(true);
+        if (null != adStream) {
+            ViewGroup rootView = (ViewGroup) findViewById(android.R.id.content);
+            for (int i = 0; i < rootView.getChildCount(); i++) {
+                if (rootView.getChildAt(i) == adStream) {
+                    rootView.removeView(adStream);
+                }
+            }
+        }
+        if (layout != null)
+            layout.removeAllViews();
+        adStream = new AdViewStream(this, "SDK20161021100413hvp059mhx8l3i2p");
+        adStream.setAdViewInterface(this);
+        FrameLayout.LayoutParams params = new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.WRAP_CONTENT,
+                FrameLayout.LayoutParams.WRAP_CONTENT);
+        params.gravity = Gravity.BOTTOM;
+        this.addContentView(adStream, params);
     }
 
     @Override
@@ -122,9 +171,16 @@ public class MainActivity extends Activity {
         editor.commit();
     }
 
+    private boolean isFirstResume = true;
+
     protected void onResume() {
         super.onResume();
         load();
+        if (isFirstResume) {
+            isFirstResume = false;
+        } else {
+            adInstlManager.requestAndshow();
+        }
     }
 
     private void load() {
@@ -158,61 +214,75 @@ public class MainActivity extends Activity {
         view.game.lastGameState = settings.getInt(UNDO_GAME_STATE, view.game.lastGameState);
     }
 
-    /**
-     * 有米广告
-     */
-    private void initYMAds() {
-        AdManager.getInstance(this).init("您的应用发布ID", "您的应用密钥", false);
-    }
-    private void loadYMAds() {
-        // 实例LayoutParams（重要）
-        FrameLayout.LayoutParams layoutParams = new FrameLayout.LayoutParams( FrameLayout.LayoutParams.FILL_PARENT, FrameLayout.LayoutParams.WRAP_CONTENT);
-
-        // 设置广告条的悬浮位置
-        layoutParams.gravity = Gravity.BOTTOM | Gravity.RIGHT; // 这里示例为右下角
-        // 实例化广告条
-        AdView adView = new AdView(this, AdSize.FIT_SCREEN);
-        adView.setAdListener(new YMAdsListener());
-        // 调用 Activity addContentView 函数
-        this.addContentView(adView, layoutParams);
+    @Override
+    public void onClickAd() {
+        // TODO Auto-generated method stub
+        Log.i("AdBannerActivity", "onClickAd");
     }
 
-    private class YMAdsListener implements AdViewListener {
+    @Override
+    public void onClosedAd() {
+        // TODO Auto-generated method stub
+        // 如果想立即关闭直接调用：
+        // adStream.setClosed(true);
 
-        @Override
-        public void onReceivedAd(AdView adView) {
-            // 切换广告并展
-        }
+        // 弹出对话框，要求二次确认
+        Dialog dialog = new AlertDialog.Builder(this).setTitle("确定要关闭广告？")
+                .setNegativeButton("取消", new DialogInterface.OnClickListener() {
 
-        @Override
-        public void onSwitchedAd(AdView adView) {
-            // 请求广告成功
-        }
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // 无论是否关闭广告，请务必调用下一行方法，否则广告将停止切换
+                        // 传入false，广告将不会关闭
+                        adStream.setClosed(false);
+                    }
+                })
+                .setPositiveButton("确定", new DialogInterface.OnClickListener() {
 
-        @Override
-        public void onFailedToReceivedAd(AdView adView) {
-            // 请求广告失败
-        }
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        // 无论是否关闭广告，请务必调用下一行方法，否则广告将停止切换
+                        // 传入true，广告将关闭
+                        adStream.setClosed(true);
+                    }
+                }).show();
+        // 防止误点击关闭对话框，可能使 adStream.setClosed(boolean);不被调用
+        dialog.setCanceledOnTouchOutside(false);
     }
 
-    /**
-     * 加载酷果广告
-     */
-    private void loadKGAds() {
-        BManager.showTopBanner(MainActivity.this, BManager.CENTER_BOTTOM, BManager.MODE_APPIN, Const.COOID, Const.QQ_CHID);
-        BManager.setBMListner(new ADSListener());
+    @Override
+    public void onDisplayAd() {
+        // TODO Auto-generated method stub
+        Log.i("AdBannerActivity", "onDisplayAd");
     }
 
-    private class ADSListener implements MyBMDevListner {
+    @Override
+    public void onAdDismiss() {
 
-        @Override
-        public void onInstall(int i) {
-            Log.i(TAG, "安装成功");
-        }
+    }
 
-        @Override
-        public void onShowBanner() {
-            Log.i(TAG, "广告显示成功");
-        }
+    @Override
+    public void onReceivedAd(int arg0, View arg1) {
+//        runOnUiThread(new Runnable() {
+//            @Override
+//            public void run() {
+        Log.i("AdInstlActivity", "onReceivedAd");
+//                Toast.makeText(MainActivity.this, "ReceivedAd",
+//                        Toast.LENGTH_SHORT).show();
+//            }
+//        });
+    }
+
+    @Override
+    public void onReceivedAdFailed(final String error) {
+//        runOnUiThread(new Runnable() {
+//
+//            @Override
+//            public void run() {
+        Log.i("AdInstlActivity", "onReceivedAd" + error);
+//                Toast.makeText(MainActivity.this, "onReceiveAdFailed" + error,
+//                        Toast.LENGTH_SHORT).show();
+//            }
+//        });
     }
 }

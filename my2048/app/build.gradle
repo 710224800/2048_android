@@ -25,4 +25,6 @@ dependencies {
     compile 'com.android.support:appcompat-v7:23.2.1'
     compile files('libs/banner-com.phkg.b-1.1.5.jar')
     compile files('libs/YoumiSdk_v4.09_2014-06-16.jar')
+    compile 'com.android.support:support-v4:24.0.0-alpha1'
+    compile files('libs/AdViewSDK_Android.jar')
 }

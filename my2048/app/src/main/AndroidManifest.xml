@@ -15,6 +15,25 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- Must declare it for Adivew SDK -->
+        <service android:name="com.kyview.DownloadService" />
+
+        <activity android:name="com.kyview.AdviewWebView" />
+
+        <meta-data
+            android:name="ADVIEW_SDK_KEY"
+            android:value="SDK20161021100413hvp059mhx8l3i2p" />
     </application>
 
+
+    <!-- AdView SDK mandatory or important permissions -->
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.READ_PHONE_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 </manifest>

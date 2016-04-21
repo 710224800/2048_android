@@ -93,7 +93,7 @@ public class MainGame {
 
     private void addRandomTile() {
         if (grid.isCellsAvailable()) {
-            int value = Math.random() < 0.9 ? 2 : 4;
+            int value = Math.random() < 0.96 ? 2 : 4;
             Tile tile = new Tile(grid.randomAvailableCell(), value);
             spawnTile(tile);
         }
@@ -136,7 +136,7 @@ public class MainGame {
     private void saveUndoState() {
         grid.saveTiles();
         canUndo = true;
-        lastScore =  bufferScore;
+        lastScore = bufferScore;
         lastGameState = bufferGameState;
     }
 
@@ -184,8 +184,8 @@ public class MainGame {
 
         prepareTiles();
 
-        for (int xx: traversalsX) {
-            for (int yy: traversalsY) {
+        for (int xx : traversalsX) {
+            for (int yy : traversalsY) {
                 Cell cell = new Cell(xx, yy);
                 Tile tile = grid.getCellContent(cell);
 
@@ -276,13 +276,13 @@ public class MainGame {
             Collections.reverse(traversals);
         }
 
-       return traversals;
+        return traversals;
     }
 
     private List<Integer> buildTraversalsY(Cell vector) {
         List<Integer> traversals = new ArrayList<Integer>();
 
-        for (int xx = 0; xx <numSquaresY; xx++) {
+        for (int xx = 0; xx < numSquaresY; xx++) {
             traversals.add(xx);
         }
         if (vector.getY() == 1) {

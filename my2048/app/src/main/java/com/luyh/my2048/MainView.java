@@ -416,7 +416,7 @@ public class MainView extends View {
         drawUndoButton(canvas);
         drawBackground(canvas);
         drawBackgroundGrid(canvas);
-        drawInstructions(canvas);
+//        drawInstructions(canvas);
 
     }
 
