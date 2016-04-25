@@ -3,9 +3,15 @@ package com.luyh.my2048;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.media.Image;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.nfc.Tag;
 import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
@@ -27,6 +33,9 @@ import com.kyview.interfaces.AdViewInterface;
 import com.kyview.screen.interstitial.AdInstlManager;
 import com.phkg.b.BManager;
 import com.phkg.b.MyBMDevListner;
+import com.umeng.analytics.MobclickAgent;
+import com.umeng.update.UmengUpdateAgent;
+import com.umeng.update.UpdateStatus;
 
 import net.youmi.android.AdManager;
 import net.youmi.android.banner.AdSize;
@@ -50,11 +59,16 @@ public class MainActivity extends Activity implements AdViewInterface, AdInstlIn
 
     private AdInstlManager adInstlManager;
 
+    private MyReceiver networkReceiver;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         requestWindowFeature(Window.FEATURE_NO_TITLE);
-
+//        IntentFilter filter = new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE");
+//        networkReceiver = new MyReceiver();
+//        registerReceiver(networkReceiver, filter);
+        UmengUpdateAgent.update(MainActivity.this);
 //        AdViewTargeting.setUpdateMode(AdViewTargeting.UpdateMode.EVERYTIME); // 功能为每次都从服务器获取最新的设置，方便您的调试，当调 试结束后，一定要去掉这句话，因为系统已经为您优化成最佳时间，同时不影响应用本身的性能。
         AdViewTargeting.setAdSize(AdViewTargeting.AdSize.BANNER_AUTO_FILL);
         // 设置横幅可关闭
@@ -81,6 +95,26 @@ public class MainActivity extends Activity implements AdViewInterface, AdInstlIn
         }
         setContentView(view);
         btnCode2();
+    }
+
+
+    private class MyReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+//			Toast.makeText(context, intent.getAction(), Toast.LENGTH_LONG).show();
+            ConnectivityManager manager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo mobileInfo = manager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
+            NetworkInfo wifiInfo = manager.getNetworkInfo(ConnectivityManager.TYPE_WIFI);
+            // NetworkInfo activeInfo = manager.getActiveNetworkInfo();
+            if (mobileInfo.isConnected() || wifiInfo.isConnected()) {
+                UmengUpdateAgent.setUpdateUIStyle(UpdateStatus.STYLE_NOTIFICATION);
+                if (wifiInfo.isConnected()) {
+                    UmengUpdateAgent.silentUpdate(MainActivity.this);
+                } else {
+                    UmengUpdateAgent.update(MainActivity.this);
+                }
+            }
+        } // 如果无网络连接activeInfo为null
     }
 
     @Override
@@ -137,6 +171,7 @@ public class MainActivity extends Activity implements AdViewInterface, AdInstlIn
 
     protected void onPause() {
         super.onPause();
+        MobclickAgent.onPause(this);
         save();
     }
 
@@ -175,6 +210,7 @@ public class MainActivity extends Activity implements AdViewInterface, AdInstlIn
 
     protected void onResume() {
         super.onResume();
+        MobclickAgent.onResume(this);
         load();
         if (isFirstResume) {
             isFirstResume = false;

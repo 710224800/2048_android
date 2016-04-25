@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.luyh.my2048">
+    package="com.luyh.my2048"
+    android:versionCode="1"
+    android:versionName="1.0.1">
 
     <application
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/logo_2048"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
@@ -24,6 +26,22 @@
         <meta-data
             android:name="ADVIEW_SDK_KEY"
             android:value="SDK20161021100413hvp059mhx8l3i2p" />
+
+
+        <!-- 下面是友盟 -->
+        <service
+            android:name="com.umeng.update.net.DownloadingService"
+            android:process=":DownloadingService"></service>
+        <activity
+            android:name="com.umeng.update.UpdateDialogActivity"
+            android:theme="@android:style/Theme.Translucent.NoTitleBar"></activity>
+
+        <meta-data
+            android:name="UMENG_APPKEY"
+            android:value="571dbf1667e58e8d870009b8" />
+        <meta-data
+            android:name="UMENG_CHANNEL"
+            android:value="UMENG_CHANNEL" />
     </application>
 
 

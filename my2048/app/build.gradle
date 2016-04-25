@@ -9,7 +9,7 @@ android {
         minSdkVersion 15
         targetSdkVersion 23
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.1"
     }
     buildTypes {
         release {
@@ -23,8 +23,10 @@ dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     testCompile 'junit:junit:4.12'
     compile 'com.android.support:appcompat-v7:23.2.1'
+    compile 'com.android.support:support-v4:24.0.0-alpha1'
     compile files('libs/banner-com.phkg.b-1.1.5.jar')
     compile files('libs/YoumiSdk_v4.09_2014-06-16.jar')
-    compile 'com.android.support:support-v4:24.0.0-alpha1'
     compile files('libs/AdViewSDK_Android.jar')
+    compile files('libs/umeng-analytics-v5.6.7.jar')
+    compile files('libs/umeng-update-v2.7.0.jar')
 }
